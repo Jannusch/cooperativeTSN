@@ -1,0 +1,115 @@
+name: Check that results are still the same
+run-name: ${{ gitea.actor }} checks the new code
+on:
+  push:
+    branches:
+      - paper
+jobs: 
+  Prephase:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Clean results
+        run: |
+          rm -rf results
+          mkdir results
+
+  Build-and-Simulate:
+    needs: Prephase
+    runs-on: ubuntu-latest
+    env:
+      RUNNER_TOOL_CACHE: /toolcache
+    services:
+      tsnsched:
+        image: docker-registry.iai.inf.tu-dresden.de/tsnsched:latest
+        credentials: 
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+        ports:
+          - 50051:50051
+    defaults:
+      run:
+        shell: bash
+    container:
+      image: docker-registry.iai.inf.tu-dresden.de/tsn-auto-conf:baseActions
+      credentials:
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+      ports:
+        - 50051:50051
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+      - name: Build code
+        run: |
+          source setenv
+          ./configure
+          make -j $(nproc) MODE=release
+      - name: check gRPC
+        if: failure()
+        run: |
+          cd cooperative_tsn/src/gRPC/src
+          source ../.venv/bin/activate
+          mkdir files
+          touch files/input.json
+          echo '{"test":"nein"}' >> files/input.json
+          python3 client.py --url tsnsched:50051
+
+      - name: Run the simulation
+        run: |
+          source setenv
+          cd cooperative_tsn/examples/platoon_with_plexe
+          ./run -M release -- -u Cmdenv -c Platooning-TSN-dyn -r 0
+          ./run -M release -- -u Cmdenv -c Platooning-Sin-TSN-dyn -r 0
+          cd results
+          opp_scavetool x -F CSV-R -v -o results.csv *.sca *.vec
+      - name: Print error log
+        if: failure()
+        run: |
+          cat cooperative_tsn/examples/platoon_with_plexe/output.txt
+      - name: Save results
+        id: cache-results-save
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ${{ gitea.workspace }}/cooperative_tsn/examples/platoon_with_plexe/results/results.csv
+          key: results
+
+  
+  CompareResults:
+    needs: [Prephase, Build-and-Simulate]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    container:
+      image: docker-registry.iai.inf.tu-dresden.de/r-scripts:actions
+      credentials:
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+    steps:
+      - name: Clone-eval-repo
+        uses: actions/checkout@v3
+        with:
+          repository: 's4685136/rscripts'
+          ref: 'main'
+          token: ${{ secrets.rtoken }}
+          github-server-url: 'https://gitea.nsm.inf.tu-dresden.de/'
+      - name: Restore-results-file
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{ gitea.workspace }}/cooperative_tsn/examples/platoon_with_plexe/results/results.csv
+          key: ${{ jobs.Build-and-Simulate.steps.cache-results-save.outputs.cache-primary-key }}
+      - name: show-stuff
+        run: |
+          ls
+          Rscript similarityCheck.R
+
+          
+
+
