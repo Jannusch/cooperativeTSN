@@ -32,7 +32,7 @@ simple NicForwardingApplication extends VeinsInetApplicationBase
 {
     parameters:
         @class(veins::NicForwardingApplication);
-        object forwardingRules; // rules which message to forward to which module (relative path from the parent of the internal network or absolut path with usual ned notation) (e.g. {"SamplePlatoon": "tsnDevice[0]"})
+        object forwardingRules; // rules which message to forward to which module (relative path from the parent of the internal network or absolut path with usual ned notation) (e.g. {"SamplePlatoon": {"destination": "tsnDevice", "port": 3000, "pcp": 0}})
         int localPort = default(3000); // UDP port to listen on
         string multicastAddress = default("224.0.0.1"); // multicast address to listen on for wireless broadcast
         
