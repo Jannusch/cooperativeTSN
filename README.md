@@ -23,12 +23,16 @@ Installation steps are provided in the TSNsched repository.
 
 ### Building the simulation
 The following steps require that you have a working OMNeT++ and SUMO.
-For easy setup you can use the [veins-devcontainer](https://github.com/veins/veins_devcontainer).
-Be aware that right now (30.11. 17:11) the devcontainer by default is not updated to Veins 5.3, SUMO 1.21.0 and OMNeT++ 6.0.3.
-
+For easy setup you can use the [a docker image](dr.nsm.inf.tu-dresden.de/jannusch/wons25:latest).
+Due to legal reasons you have to compile all the parts if you start the container for the first time:
 ```bash
-# Clone the repository
-git clone https://github.com/Jannusch/cooperativeTSN && cd cooperativeTSN
+# Build OMNeT++
+cd /opt/omnetpp
+./configure
+make -j $(nproc)
+
+# Go to the simulation repo
+cd /opt/cooperativetsn
 
 # Configure all the included projects (make sure omnetpp is in your PATH)
 ./configure
