@@ -67,7 +67,7 @@ The results are saved in the `results` folder of the folder in which you started
 
 ## Points of interest
 Some interesting things are described in more detail in the following sections.
-In the near future you can find a more complete documentation [here](jannusch.xyz/doc/cooperativetsn).
+In the near future you can find a more complete documentation [here](https://jannusch.xyz/archive/cooperativetsn).
 
 ### Auto Gate Scheduling
 The scheduling of the network is performed during the simulation, based on an initial configuration, respecting new streams during the runtime.
