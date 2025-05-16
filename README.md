@@ -23,7 +23,7 @@ Installation steps are provided in the TSNsched repository.
 
 ### Building the simulation
 The following steps require that you have a working OMNeT++ and SUMO.
-For easy setup you can use the a docker image(dr.nsm.inf.tu-dresden.de/jannusch/wons25:latest) (this is a link to docker repo, no website).
+For easy setup you can use the a docker image (dr.nsm.inf.tu-dresden.de/jannusch/wons25:latest) (this is a link to docker repo, no website).
 Due to legal reasons you have to compile all the parts if you start the container for the first time:
 ```bash
 # Build OMNeT++
